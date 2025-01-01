@@ -13,7 +13,6 @@ This project aims to solve these issues by providing an AI-powered automated qui
 
 ---
 
-
 ## Industry Applications
 This project is valuable across multiple domains:
 
@@ -50,6 +49,29 @@ Core Technologies
 - python-dotenv
 - streamlit
 - pandas
+  
+---
+## Setup Instructions
+
+1. Clone the Repository
+git clone <repository-url>
+cd upsc-pcs-quiz-generator
+
+2. Create Virtual Environment
+conda create -p env python=3.10 -y
+
+3. Install Dependencies
+pip install -r requirements.txt
+
+4. Configure Environment Variables
+Create a `.env` file in the root directory:
+GROQ_API_KEY=your_groq_api_key_here
+
+5. Run the Application
+streamlit run app.py
+
+---
+
 
 ## Key Features
 ### Question Generation
