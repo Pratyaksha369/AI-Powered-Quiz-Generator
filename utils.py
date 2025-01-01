@@ -20,7 +20,6 @@ class MCQQuestion(BaseModel):
         return str(v)
 
 class FillBlankQuestion(BaseModel):
-    # Define the structure of a fill-in-the-blank question with field descriptions
     question: str = Field(description="The question text with '_____' for the blank")
     answer: str = Field(description="The correct word or phrase for the blank")
 
@@ -99,7 +98,6 @@ class QuestionGenerator:
         - Multiple retry attempts on failure
         - Validation of blank marker format
         """
-        # Set up Pydantic parser for type checking and validation
         fill_blank_parser = PydanticOutputParser(pydantic_object=FillBlankQuestion)
   
         prompt = PromptTemplate(
