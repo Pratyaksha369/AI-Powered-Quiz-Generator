@@ -1,4 +1,3 @@
-# Import required libraries
 import os
 from typing import List
 from dotenv import load_dotenv
@@ -7,32 +6,24 @@ from langchain.prompts import PromptTemplate
 from langchain.output_parsers import PydanticOutputParser
 from pydantic import BaseModel, Field, validator
 
-# Load environment variables from .env file
 load_dotenv()
 
-# Define data model for Multiple Choice Questions using Pydantic
 class MCQQuestion(BaseModel):
-    # Define the structure of an MCQ with field descriptions
     question: str = Field(description="The question text")
     options: List[str] = Field(description="List of 4 possible answers")
     correct_answer: str = Field(description="The correct answer from the options")
 
-    # Custom validator to clean question text
-    # Handles cases where question might be a dictionary or other format
     @validator('question', pre=True)
     def clean_question(cls, v):
         if isinstance(v, dict):
             return v.get('description', str(v))
         return str(v)
 
-# Define data model for Fill in the Blank Questions using Pydantic
 class FillBlankQuestion(BaseModel):
     # Define the structure of a fill-in-the-blank question with field descriptions
     question: str = Field(description="The question text with '_____' for the blank")
     answer: str = Field(description="The correct word or phrase for the blank")
 
-    # Custom validator to clean question text
-    # Similar to MCQ validator, ensures consistent question format
     @validator('question', pre=True)
     def clean_question(cls, v):
         if isinstance(v, dict):
@@ -62,10 +53,8 @@ class QuestionGenerator:
         - Multiple retry attempts on failure
         - Validation of generated questions
         """
-        # Set up Pydantic parser for type checking and validation
         mcq_parser = PydanticOutputParser(pydantic_object=MCQQuestion)
-        
-        # Define the prompt template with specific format requirements
+       
         prompt = PromptTemplate(
             template=(
                 "Generate a {difficulty} multiple-choice question about {topic}.\n\n"
@@ -83,16 +72,12 @@ class QuestionGenerator:
             ),
             input_variables=["topic", "difficulty"]
         )
-
-        # Implement retry logic with maximum attempts
         max_attempts = 3
         for attempt in range(max_attempts):
             try:
-                # Generate response using LLM
                 response = self.llm.invoke(prompt.format(topic=topic, difficulty=difficulty))
                 parsed_response = mcq_parser.parse(response.content)
-                
-                # Validate the generated question meets requirements
+               
                 if not parsed_response.question or len(parsed_response.options) != 4 or not parsed_response.correct_answer:
                     raise ValueError("Invalid question format")
                 if parsed_response.correct_answer not in parsed_response.options:
@@ -116,8 +101,7 @@ class QuestionGenerator:
         """
         # Set up Pydantic parser for type checking and validation
         fill_blank_parser = PydanticOutputParser(pydantic_object=FillBlankQuestion)
-        
-        # Define the prompt template with specific format requirements
+  
         prompt = PromptTemplate(
             template=(
                 "Generate a {difficulty} fill-in-the-blank question about {topic}.\n\n"
@@ -134,15 +118,12 @@ class QuestionGenerator:
             input_variables=["topic", "difficulty"]
         )
 
-        # Implement retry logic with maximum attempts
         max_attempts = 3
         for attempt in range(max_attempts):
             try:
-                # Generate response using LLM
                 response = self.llm.invoke(prompt.format(topic=topic, difficulty=difficulty))
                 parsed_response = fill_blank_parser.parse(response.content)
-                
-                # Validate the generated question meets requirements
+               
                 if not parsed_response.question or not parsed_response.answer:
                     raise ValueError("Invalid question format")
                 if "_____" not in parsed_response.question:
@@ -152,7 +133,6 @@ class QuestionGenerator:
                 
                 return parsed_response
             except Exception as e:
-                # On final attempt, raise error; otherwise continue trying
                 if attempt == max_attempts - 1:
                     raise RuntimeError(f"Failed to generate valid fill-in-the-blank question after {max_attempts} attempts: {str(e)}")
                 continue
